@@ -347,7 +347,34 @@ int overrideWithSucc(struct BTreeNode* par_node, int pos_std_search){
 	return succcessor;
 }
  
-
+ // 내부노드에서 값을 지우는 함수
+ void deleteInnerNode(struct BTreeNode* cur_node, int cur_node_pos){
+	 int cessor=0; //pred 혹은 succ가 있을경우 || merge할 경우의 찾은 값을 담은 변수
+	 int deletion_for_merge=0;
+	 //왼쪽 오른쪽 중 어느쪽 자식이 더 많은지 확인, pred 혹은 succ를 찾아야하기 때문. 
+	 //만약 같으면 무조건 왼쪽을 보도록 강제함.
+	 if (cur_node->child[cur_node_pos]->cnt_key >= cur_node->child[cur_node_pos+1]->cnt_key){ // 왼쪽이 더 많거나 같다면
+		 if (cur_node->child[cur_node_pos]->cnt_key > min_keys){
+			 //자식 키 개수가 최소범위보다 작지 않으면 predessor찾기 가능
+			 cessor=overrideWithPred(cur_node, cur_node_pos);
+			 
+			 //찾은 pred를 위로 올려야함. 근데 이 과정이 결국 해당 리프노드에서 값을 지우는게 효과라서 삭제하는 함수 호출
+			 deleteValFromNode(cessor, cur_node->child[cur_node_pos]);
+		 }else{//키개수가 부족? -> Merge
+			 deletion_for_merge=mergeChildNode(cur_node, cur_node_pos);
+			 deleteValFromNode(deletion_for_merge, cur_node->child[cur_node_pos]);
+		 }
+	 }else{
+		 if (cur_node->child[cur_node_pos+1]->cnt_key > min_keys){
+			 cessor = overrideWithSucc(cur_node, cur_node_pos);
+			 deleteValFromNode(cessor, cur_node->child[cur_node_pos+1]);
+			 //successor 찾으면 이것도 리프노드에서 지우는 효과를 내야함.
+		 }else{
+			 deletion_for_merge=mergeChildNode(cur_node,cur_node_pos);
+			 deleteValFromNode(deletion_for_merge, cur_node->child[cur_node_pos]);
+		 }
+	 }
+ }
 
 
 int main(int argc, char** argv) {
