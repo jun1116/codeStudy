@@ -44,6 +44,8 @@ int searchNode(struct BTreeNode* node, int val){
 		if (level->leaf) break;
 		level = level->child[pos]; //child 로 level포인터를 바꿔준 다음 while문 새로 시작
 	}
+	printf("Key %d does not exist",val);
+	return 0;
 } 
 
 struct BTreeNode* createNode(int val){
@@ -95,7 +97,7 @@ struct BTreeNode* splitNode(int pos, struct BTreeNode* node, struct BTreeNode* p
 		return new_parent_node;
 	}else{ //root가 아니면, 원래있던 부모노드 활용
 		for (int i=parent->cnt_key; i>pos; i--){
-			// 부모노드에 넣어야하니까 거기있던 키 배치 다시하기(뒤로밀기)
+			// 부모노드에 넣어야하니까 새로들어간 끝에서부터 pos까지 거기있던 키 배치 다시하기(한칸씩뒤로밀기)
 			parent->key[i]=parent->key[i-1];
 			parent->child[i+1]=parent->child[i]
 		}
@@ -111,8 +113,8 @@ struct BTreeNode* splitNode(int pos, struct BTreeNode* node, struct BTreeNode* p
 //부모노드에서 특정 키의 위치를 갖고있음.
 struct BTreeNode* insertNode(int parent_pos, int val, struct BTreeNode* node, struct BTreeNode* parent){
 	int pos;//현재 노드에서 키의 위치를 갖고있어야함. 왜냐면 넣으려고 하는 값의 위치를 찾아야하기에
-	for (pos=0; pos< node->cnt_key; pos++){
-		//pos의 위치는 0부터시작, 현재노드의 키 개수만큼 탐색
+	for (pos=0; pos < node->cnt_key ; pos++){
+		 //pos의 위치는 0부터시작, 현재노드의 키 개수만큼 탐색
 		if (val==node->key[pos]){
 			//node의 pos번째 키와 val이 같다면
 			printf("Duplicates are not Permitted! \n");
