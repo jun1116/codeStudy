@@ -115,7 +115,7 @@ struct BTreeNode* insertNode(int parent_pos, int val, struct BTreeNode* node, st
 		//pos의 위치는 0부터시작, 현재노드의 키 개수만큼 탐색
 		if (val==node->key[pos]){
 			//node의 pos번째 키와 val이 같다면
-			print("Duplicates are not Permitted! \n");
+			printf("Duplicates are not Permitted! \n");
 			return node;
 		//val이 현재pos보다 작다면, 그 pos에서 멈춘다. 
 		}else if(val < node->key[pos]){break;}
@@ -125,7 +125,7 @@ struct BTreeNode* insertNode(int parent_pos, int val, struct BTreeNode* node, st
 		//node leaf 여부가 false이면, (leaf가 아니라면)
 		//node의 pos번째 자식노드에 insertNode값을 담는다. -> 재귀로 자식을 탐색하러 또들어감
 		node->child[pos] = insertNode(pos,val,node->child[pos], node);
-		if (node->cnt_key==max_key+1){
+		if (node->cnt_key==max_keys+1){
 			//현재 노드 키 개수가 규칙에서 벗어날 것 같으면 -> 스플릿
 			node = splitNode(parent_pos, node, parent);//윗방향으로 분리
 		}
@@ -225,7 +225,7 @@ void borrowFromLeft(struct BTreeNode* par_node, int cur_node_pos){
 		//형제노드 자식 빌려옴. 빌려온 자식 놓는 위치는 현재노드의 첫번째 위치
 		par_node->child[cur_node_pos]->child[0] = par_node->child[cur_node_pos-1]->child[tenant_child_idx];
 		par_node->child[cur_node_pos]->cnt_child++;
-
+		
 		par_node->child[cur_node_pos-1]->cnt_child--;
 	}
 }
@@ -241,7 +241,7 @@ void borrowFromRight(struct BTreeNode* par_node, int cur_node_pos){
 
 	int idx_from_sib_topar=0;
 	//부모노드는 빌려준 형제노드의 키를 가져옴
-	par_node->key[cur_node_pos]=parnode->child[cur_node_pos+1]->key[idx_from_sib_topar]; // 부모노드는 빌려준 형제의 키를 들고온다. 
+	par_node->key[cur_node_pos]=par_node->child[cur_node_pos+1]->key[idx_from_sib_topar]; // 부모노드는 빌려준 형제의 키를 들고온다. 
 
 	//오른쪽형제노드의 0번짜 키를 빌려줬으므로, 인덱스 재정렬
 	for (int i=0; (par_node->child[cur_node_pos+1]->cnt_key)-1;i++){
@@ -265,8 +265,87 @@ void borrowFromRight(struct BTreeNode* par_node, int cur_node_pos){
 	}
 }
 
+// 현재노드와 자식노드에서의 위치를 인자로 받는 함수 -> 빌리기 , 병합을 진행
+void balanceNode(struct BTreeNode* node, int child_pos){
+// 자식노드 키 위치가 맨 왼쪽일 때는 오른쪽 부모, 형제를 봐야함
+	if (child_pos==0){
+	//if 자식노드 기준에서 형제의 키 개수가 최소 숫자 범위 안부서질때
+	//else 부서지면 부모(현재노드)와 지우는 노드랑 병합대상 노드 위치를 같이 넘겨줌
+		if(node->child[child_pos]->cnt_key > min_keys){borrowFromLeft(node, child_pos);}
+		else{mergeNode(node,child_pos, child_pos-1);}
+		return ;
+	}else{
+//맨 왼쪽, 맨 오른쪽 말고 그 외의 위치일 때	
+        if(node->child[child_pos-1]->cnt_key > min_keys){borrowFromLeft(node,child_pos);}
+		else if(node->child[child_pos+1]->cnt_key > min_keys){borrowFromRight(node, child_pos);}
+		else{mergeNode(node,child_pos,child_pos-1);}//양끝이 아닌 중간에 
+		return ;	
+	}
+}
+//내부노드 기준으로 자식들을 merge 해야하는 케이스
+int mergeChildNode(struct BTreeNode* par_node, int cur_node_pos){
+//merge는 왼쪽 기준으로 하는데, 자식노드에서 합쳐질 위치 지정. 
+	int mergeidx=par_node->child[cur_node_pos]->cnt_key;
+// 바로 지우지 않고, 합치려고 하는 노드에 지우려고 하는 부모노드(내부노드)의 값을 합침.
+// 왜냐? -> 바로비우고 자식노드만 합치면, 합치려고 하는 노드 밑에 또 자식노드가 있을 경우, 자식 1개가 낙동강오리알됨
+	int val_par_node = par_node->key[cur_node_pos]; //지우려는 부모노드 값 기억
+	par_node->child[cur_node_pos]->key[mergeidx] = par_node->key[cur_node_pos];
+	par_node->child[cur_node_pos]->cnt_key++;
 
+	//합치려는 노드에 형제노드 값을 가져옴 (원래함수목적)
+	for(int i=0;i<par_node->child[cur_node_pos+1]->cnt_key ; i++){
+		par_node->child[cur_node_pos]->key[mergeidx+1+i] = par_node->child[cur_node_pos+1]->key[i];
+		par_node->child[cur_node_pos]->cnt_key++;
+	}
+	//형제노드 자식들도 가져와야함
+	for (int i=0; i< par_node->child[cur_node_pos+1]->cnt_child; i++){
+		par_node->child[cur_node_pos]->child[mergeidx+1+i] = par_node->child[cur_node_pos+1]->child[i];
+		par_node->child[cur_node_pos]->cnt_child++;
+	}
+	//부모노드(내부노드)의 키를 젔으니 재배열 & 자식도 재배열
+	for (int i=cur_node_pos; i<par_node->cnt_key;i++){
+		par_node->key[i]=par_node->key[i+1];
+		par_node->cnt_key--;
+	}
+	for (int i=cur_node_pos+1; i< par_node->cnt_child;i++){
+		par_node->child[i]=par_node->child[i+1];
+		par_node->cnt_child--;
+	}
+	//부모노드에서 내린 값을 지우기 위해 일단 리턴, 값을 삭제하는 함수에서 지워질 예정
+	return val_par_node;
+}
 
+//Predecessor 찾는 함수 (지금값 바로 전의값 찾기)
+int findPredecessor(struct BTreeNode* cur_node){
+	// int predecessor;
+//현재 탐색노드가 리프이면, 찾을 수 있음 -> 현재노드에서 가장 큰 키 주면됨.
+	if (cur_node->leaf){return cur_node->key[cur_node->cnt_key-1];}
+	return findPredecessor(cur_node->child[(cur_node->cnt_child)-1]);
+//탐색할 때마다 큰쪽 자식으로 탐색해야함.
+}
+// predecessor 찾아서 내부노드에 덮어씌우는 함수
+int overrideWithPred(struct BTreeNode* par_node, int pos_std_search){
+//predecessor를 재귀로 쭉 내려가서 찾는 함수 호출, 부모노드랑 타고 내려갈 위치를 인자로 받음
+	int predecessor=findPredecessor(par_node->child[pos_std_search]);
+	par_node->key[pos_std_search]=predecessor;
+	return predecessor;
+}
+
+int findSuccessor(struct BTreeNode* cur_node){
+	// int successor;
+// 현재 탐색노드가 리프이면,찾을 수 있음 -> 현재노드의 0번인덱스를 주면됨.
+	if (cur_node->leaf){return cur_node->key[0];}
+	return findSuccessor(cur_node->child[0]);
+//탐색할 때마다 작은쪽 자식으로 탐색해야함.
+}
+
+//successor 찾아서 내부노드에 덮어씌우는 함수
+int overrideWithSucc(struct BTreeNode* par_node, int pos_std_search){
+// Successor를 재귀로 쭉 내려가서 찾는 함수 호출. 부모노드랑 내려갈 위치 인자로받음
+	int succcessor=findSuccessor(par_node);
+	par_node->key[pos_std_search]=succcessor;//변경수행
+	return succcessor;
+}
 
 
 
