@@ -364,7 +364,7 @@ int overrideWithSucc(struct BTreeNode* par_node, int pos_std_search){
 			 deletion_for_merge=mergeChildNode(cur_node, cur_node_pos);
 			 deleteValFromNode(deletion_for_merge, cur_node->child[cur_node_pos]);
 		 }
-	 }else{
+	 }else{//오른쪽이 더 많아
 		 if (cur_node->child[cur_node_pos+1]->cnt_key > min_keys){
 			 cessor = overrideWithSucc(cur_node, cur_node_pos);
 			 deleteValFromNode(cessor, cur_node->child[cur_node_pos+1]);
