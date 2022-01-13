@@ -99,7 +99,7 @@ struct BTreeNode* splitNode(int pos, struct BTreeNode* node, struct BTreeNode* p
 		for (int i=parent->cnt_key; i>pos; i--){
 			// 부모노드에 넣어야하니까 새로들어간 끝에서부터 pos까지 거기있던 키 배치 다시하기(한칸씩뒤로밀기)
 			parent->key[i]=parent->key[i-1];
-			parent->child[i+1]=parent->child[i]
+			parent->child[i+1]=parent->child[i];
 		}
 		parent->key[pos]=node->key[median];//부모노드에 넣어야할 자리에 값 넣기
 		parent->cnt_key++; //부모노드 키 개수 증가
@@ -141,7 +141,7 @@ struct BTreeNode* insertNode(int parent_pos, int val, struct BTreeNode* node, st
 		node->key[pos]=val;//val을 삽입해야하는 위치에 val삽입.
 		node->cnt_key++; //key count중가
 		if(node->cnt_key == max_keys+1){ // leaf 노드가 꽉 찼으면 분리작업수행
-			node=splitNode(parent_pos node, parent);
+			node=splitNode(parent_pos, node, parent);
 		}
 	}
 	return node;//node에 값을 넣어주니까 그 node를 반환. 그래야 재귀가 종료
