@@ -47,16 +47,16 @@ class BTree:
       self.insert_non_full(x.child[i], k)
 
     # Split the child
-  def split_child(self, x, i):
+  def split_child(self, node, idx):
     t = self.t
-    y = x.child[i]
-    z = BTreeNode(y.leaf)
-    x.child.insert(i + 1, z)
-    x.keys.insert(i, y.keys[t - 1])
-    z.keys = y.keys[t: (2 * t) - 1]
+    y = node.child[idx]
+    temp = BTreeNode(y.leaf)
+    node.child.insert(idx + 1, temp)
+    node.keys.insert(idx, y.keys[t - 1])
+    temp.keys = y.keys[t: (2 * t) - 1]
     y.keys = y.keys[0: t - 1]
     if not y.leaf:
-      z.child = y.child[t: 2 * t]
+      temp.child = y.child[t: 2 * t]
       y.child = y.child[0: t - 1]
 
 
