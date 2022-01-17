@@ -16,7 +16,6 @@ class Node:
             temp.child = self.child[length//2+1:]
             self.child = self.child[:length//2+1]
         return self,mid,temp
-        
 
 class BTree:
     def __init__(self, m):
@@ -25,24 +24,8 @@ class BTree:
         # self.root.isleaf = 'root'
         # self.root=None
 
-    def printTree(self, node ,level=0):
-        print(f'level {level} , length : {len(node.keys)} ', end=" : ")
-        for i in node.keys: 
-            print(i[0],end=" ")
-        level+=1
-        if len(node.child)>0:
-            for i in node.child: 
-                self.printTree(i, level)
-        
-    # def splitNode(self,p_pos,p_node,node):
-    #     pass
-
-    
-    # def insert(self,key):
-        # if self.root
-
-
-
+    # k : Key 
+    # def insert_node(self,p_pos,p_node,node,key):
     def insert_node(self,node,key):
         """ 데이터 추가하는것, Root부터 시작해서 내려가도록 Trigger가 발동되며, 
         현재의 노드(node)가 leaf가 아닐경우, 재귀적으로 child를 내려감. 
@@ -59,7 +42,7 @@ class BTree:
                 return node, None 
             elif key[0]<node.keys[pos][0]: break
             pos+=1
-        print(key," Node : ",node , pos)
+        # print(key," Node : ",node , pos)
         
         # Position 찾기 완료
         if node.isleaf==True : # Leaf라면?? -> Leaf에서의 삽입 로직
@@ -111,7 +94,75 @@ class BTree:
                 if len(node.keys)>=self.m:
                     return node, node.keys[(self.m//2)]
             return node, None
-            
+
+    # def search_key_with_Parent(self,p_node,node,key):
+    #     """ Find Key 
+    #     IF FIND : RETURN [Node, Key]
+    #     else : RETURN [None, None] """
+    #     # print(node)
+    #     pos=0
+    #     while pos < len(node.keys):
+    #         if key[0] == node.keys[pos][0]:
+    #             # print(f'Find! key : {node.keys[pos]}')
+    #             return p_node, node, key
+    #         elif key[0] < node.keys[pos][0] : break
+    #         else:
+    #             pos+=1
+    #     # print(node, pos)
+    #     if node.child:
+    #         return self.search_key(node, node.child[pos],key)
+    #     else : 
+    #         return None, None, None
+    def search_key(self,node,key):
+        """ Find Key 
+        IF FIND : RETURN [Node, Key]
+        else : RETURN [None, None] """
+        # print(node)
+        pos=0
+        while pos < len(node.keys):
+            if key[0] == node.keys[pos][0]:
+                # print(f'Find! key : {node.keys[pos]}')
+                return node, key
+            elif key[0] < node.keys[pos][0] : break
+            else:
+                pos+=1
+        # print(node, pos)
+        if node.child:
+            return self.search_key(node.child[pos],key)
+        else : 
+            return None, None
+            # return f"NOT FOUND {key}"
+
+    def print_inorder(self,node):
+        if node.child:
+            for i in range(len(node.keys)):
+                self.print_inorder(node.child[i])
+                print(node.keys[i])
+            self.print_inorder(node.child[-1])
+        else:
+            for i in node.keys:
+                print(i)
+            # print(node.keys)
+    
+    def delete(self,node,key):
+        pos = 0
+        while pos<len(node.keys) and key[0] > node.keys[pos][0]:
+            pos+=1
+        if node.isleaf==True and pos<len(node.keys) and node.keys[pos][0]==key[0]:
+            node.keys.pop(pos)
+            return
+
+
+        if not node:
+            return f"THERE IS NO KEY {key}"
+        else:
+            if node.isleaf: #Leaf에서 DELETE일경우
+                pass
+            else: # Internal Node에서 DELETE일경우
+                pass
+        pass
+
+
 
 
 
