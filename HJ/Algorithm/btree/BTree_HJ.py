@@ -169,12 +169,6 @@ class BTree:
 if __name__=="__main__":
     print("Start")
     bt = BTree(3)
-    bt.insert_node(bt.root,[10,11])
-    bt.insert_node(bt.root,[30,11])
-    bt.insert_node(bt.root,[20,11])  
-    bt.insert_node(bt.root,[40,11])
-    bt.insert_node(bt.root,[50,11])
-    bt.insert_node(bt.root,[60,11])
-    bt.insert_node(bt.root,[70,11])
-    bt.insert_node(bt.root,[80,11])
-    bt.insert_node(bt.root,[90,11])
+    for i in range(1,50):
+        bt.insert_node(bt.root,[i,i*10])
+    
