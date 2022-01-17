@@ -61,59 +61,61 @@ class BTree:
 
 
     # Delete a node
-    def delete(self, x, k):
+    def delete(self, node, k):
         t = self.t
         i = 0
-        while i < len(x.keys) and k[0] > x.keys[i][0]:
+        while i < len(node.keys) and k[0] > node.keys[i][0]:
             i += 1
-        if x.leaf:
-            if i < len(x.keys) and x.keys[i][0] == k[0]:
-                x.keys.pop(i)
+        if node.leaf: # 리프노드라면?
+            if i < len(node.keys) and node.keys[i][0] == k[0]: # 키를 찾으면 POP 그리고 리턴
+                node.keys.pop(i)
                 return
             return
 
-        if i < len(x.keys) and x.keys[i][0] == k[0]:
-            return self.delete_internal_node(x, k, i)
-        elif len(x.child[i].keys) >= t:
-            self.delete(x.child[i], k)
+        if i < len(node.keys) and node.keys[i][0] == k[0]: 
+          #리프가 아닌데 키를 찾으면? 
+          # delete_internal_node를 리턴
+            return self.delete_internal_node(node, k, i)
+        elif len(node.child[i].keys) >= t:
+            self.delete(node.child[i], k)
         else:
-            if i != 0 and i + 2 < len(x.child):
-                if len(x.child[i - 1].keys) >= t:
-                    self.delete_sibling(x, i, i - 1)
-                elif len(x.child[i + 1].keys) >= t:
-                    self.delete_sibling(x, i, i + 1)
+            if i != 0 and i + 2 < len(node.child):
+                if len(node.child[i - 1].keys) >= t:
+                    self.delete_sibling(node, i, i - 1)
+                elif len(node.child[i + 1].keys) >= t:
+                    self.delete_sibling(node, i, i + 1)
                 else:
-                    self.delete_merge(x, i, i + 1)
+                    self.delete_merge(node, i, i + 1)
             elif i == 0:
-                if len(x.child[i + 1].keys) >= t:
-                    self.delete_sibling(x, i, i + 1)
+                if len(node.child[i + 1].keys) >= t:
+                    self.delete_sibling(node, i, i + 1)
                 else:
-                    self.delete_merge(x, i, i + 1)
-            elif i + 1 == len(x.child):
-                if len(x.child[i - 1].keys) >= t:
-                    self.delete_sibling(x, i, i - 1)
+                    self.delete_merge(node, i, i + 1)
+            elif i + 1 == len(node.child):
+                if len(node.child[i - 1].keys) >= t:
+                    self.delete_sibling(node, i, i - 1)
                 else:
-                    self.delete_merge(x, i, i - 1)
-            self.delete(x.child[i], k)
+                    self.delete_merge(node, i, i - 1)
+            self.delete(node.child[i], k)
 
     # Delete internal node
-    def delete_internal_node(self, x, k, i):
+    def delete_internal_node(self, node, k, i):
         t = self.t
-        if x.leaf:
-            if x.keys[i][0] == k[0]:
-                x.keys.pop(i)
+        if node.leaf:
+            if node.keys[i][0] == k[0]:
+                node.keys.pop(i)
                 return
             return
 
-        if len(x.child[i].keys) >= t:
-            x.keys[i] = self.delete_predecessor(x.child[i])
+        if len(node.child[i].keys) >= t:
+            node.keys[i] = self.delete_predecessor(node.child[i])
             return
-        elif len(x.child[i + 1].keys) >= t:
-            x.keys[i] = self.delete_successor(x.child[i + 1])
+        elif len(node.child[i + 1].keys) >= t:
+            node.keys[i] = self.delete_successor(node.child[i + 1])
             return
         else:
-            self.delete_merge(x, i, i + 1)
-            self.delete_internal_node(x.child[i], k, self.t - 1)
+            self.delete_merge(node, i, i + 1)
+            self.delete_internal_node(node.child[i], k, self.t - 1)
 
     # Delete the predecessor
     def delete_predecessor(self, x):
